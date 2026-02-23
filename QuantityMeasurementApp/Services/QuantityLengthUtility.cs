@@ -1,7 +1,7 @@
 using QuantityMeasurementApp.Interfaces;
 using QuantityMeasurementApp.Model;
 namespace QuantityMeasurementApp.Services;
-    public class QuantityLengthUtility: IQuantityLength
+     public class QuantityLengthUtility: IQuantityLength
     {
         public bool CheckEquality(double value1, LengthUnit unit1,double value2, LengthUnit unit2)
         {
