@@ -1,6 +1,6 @@
 namespace QuantityMeasurementApp.Model
 {
-    public enum LengthUnit
+     public enum LengthUnit
     {
         Feet,
         Inch,
