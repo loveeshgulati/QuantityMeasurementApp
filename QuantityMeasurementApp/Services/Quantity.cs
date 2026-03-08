@@ -1,4 +1,5 @@
 using System;
+
 namespace QuantityMeasurementApp.Model;
     public class Quantity<U> where U : struct
     {

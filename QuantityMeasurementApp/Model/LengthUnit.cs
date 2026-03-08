@@ -1,6 +1,7 @@
-namespace QuantityMeasurementApp.Model
-{
-      public enum LengthUnit
+using System;
+
+namespace QuantityMeasurementApp.Model;
+    public enum LengthUnit
     {
         FEET,
         INCHES,
@@ -10,48 +11,30 @@ namespace QuantityMeasurementApp.Model
 
     public static class LengthUnitExtensions
     {
-        // Convert a value in this unit to base unit (feet)
+        public static double GetConversionFactor(this LengthUnit unit)
+        {
+            switch (unit)
+            {
+                case LengthUnit.FEET: return 1.0;
+                case LengthUnit.INCHES: return 1.0 / 12.0;
+                case LengthUnit.YARDS: return 3.0;
+                case LengthUnit.CENTIMETERS: return 1.0 / 30.48;
+                default: throw new ArgumentException();
+            }
+        }
+
         public static double ConvertToBaseUnit(this LengthUnit unit, double value)
         {
-            switch (unit)
-            {
-                case LengthUnit.FEET:
-                    return value;
-
-                case LengthUnit.INCHES:
-                    return value / 12.0;
-
-                case LengthUnit.YARDS:
-                    return value * 3.0;
-
-                case LengthUnit.CENTIMETERS:
-                    return value / 30.48;
-
-                default:
-                    throw new ArgumentException("Invalid unit");
-            }
+            return value * unit.GetConversionFactor();
         }
 
-        // Convert a base unit (feet) value to this unit
         public static double ConvertFromBaseUnit(this LengthUnit unit, double baseValue)
         {
-            switch (unit)
-            {
-                case LengthUnit.FEET:
-                    return baseValue;
+            return baseValue / unit.GetConversionFactor();
+        }
 
-                case LengthUnit.INCHES:
-                    return baseValue * 12.0;
-
-                case LengthUnit.YARDS:
-                    return baseValue / 3.0;
-
-                case LengthUnit.CENTIMETERS:
-                    return baseValue * 30.48;
-
-                default:
-                    throw new ArgumentException("Invalid unit");
-            }
+        public static string GetUnitName(this LengthUnit unit)
+        {
+            return unit.ToString();
         }
     }
-}

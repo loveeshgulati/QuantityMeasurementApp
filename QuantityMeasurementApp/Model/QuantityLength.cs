@@ -1,12 +1,15 @@
 using System;
 
 namespace QuantityMeasurementApp.Model;
-
-  public class QuantityLength
+    public class QuantityLength
     {
         private readonly double value;
         private readonly LengthUnit unit;
         private const double EPSILON = 0.0001;
+
+        // PUBLIC PROPERTIES (Fix)
+        public double Value => value;
+        public LengthUnit Unit => unit;
 
         public QuantityLength(double value, LengthUnit unit)
         {
@@ -33,13 +36,12 @@ namespace QuantityMeasurementApp.Model;
             return target.ConvertFromBaseUnit(baseValue);
         }
 
-        // Private addition helper
         private static double AddInBaseUnit(QuantityLength l1, QuantityLength l2)
         {
             return l1.ConvertToBaseUnit() + l2.ConvertToBaseUnit();
         }
 
-        // UC6: Add result in first operand unit
+        // UC6
         public QuantityLength Add(QuantityLength other)
         {
             if (other == null)
@@ -51,7 +53,6 @@ namespace QuantityMeasurementApp.Model;
             return new QuantityLength(resultValue, this.unit);
         }
 
-        // UC6 static version
         public static QuantityLength AddTwoUnits(QuantityLength l1, QuantityLength l2)
         {
             if (l1 == null || l2 == null)
@@ -60,7 +61,7 @@ namespace QuantityMeasurementApp.Model;
             return l1.Add(l2);
         }
 
-        // UC7: Add with explicit target unit
+        // UC7
         public static QuantityLength AddTwoUnits_TargetUnit(
             QuantityLength l1,
             QuantityLength l2,
@@ -75,7 +76,7 @@ namespace QuantityMeasurementApp.Model;
             return new QuantityLength(resultValue, targetUnit);
         }
 
-        // Optional UC8 instance-style convert
+        // UC8
         public QuantityLength ConvertTo(LengthUnit targetUnit)
         {
             double convertedValue = Convert(this.value, this.unit, targetUnit);
@@ -85,7 +86,6 @@ namespace QuantityMeasurementApp.Model;
         public override bool Equals(object obj)
         {
             if (obj == null) return false;
-            if (ReferenceEquals(this, obj)) return true;
             if (!(obj is QuantityLength)) return false;
 
             QuantityLength other = (QuantityLength)obj;
@@ -102,4 +102,4 @@ namespace QuantityMeasurementApp.Model;
         {
             return value + " " + unit;
         }
-}
+    }

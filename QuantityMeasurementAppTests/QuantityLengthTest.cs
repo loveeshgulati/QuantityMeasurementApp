@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QuantityMeasurementApp.Model;
 
 namespace QuantityMeasurementApp.Tests;
-  [TestClass]
+ [TestClass]
     public class QuantityLengthTest
     {
         //Testing equality of two lengths in the same unit and same value should return true
@@ -388,5 +388,76 @@ namespace QuantityMeasurementApp.Tests;
             Assert.IsTrue(result.Equals(new QuantityWeight(2000.0, WeightUnit.GRAM)));
         }
 
+// ====================================================================================
+// Testing for VolumeUnit and QuantityVolume classes
+
+[TestMethod]
+public void testEquality_LitreToLitre_SameValue()
+{
+    QuantityVolume q1 = new QuantityVolume(1.0, VolumeUnit.LITRE);
+    QuantityVolume q2 = new QuantityVolume(1.0, VolumeUnit.LITRE);
+
+    Assert.IsTrue(q1.Equals(q2));
+}
+
+[TestMethod]
+public void testEquality_LitreToMillilitre_EquivalentValue()
+{
+    QuantityVolume q1 = new QuantityVolume(1.0, VolumeUnit.LITRE);
+    QuantityVolume q2 = new QuantityVolume(1000.0, VolumeUnit.MILLILITRE);
+
+    Assert.IsTrue(q1.Equals(q2));
+}
+
+[TestMethod]
+public void testEquality_MillilitreToLitre_EquivalentValue()
+{
+    QuantityVolume q1 = new QuantityVolume(1000.0, VolumeUnit.MILLILITRE);
+    QuantityVolume q2 = new QuantityVolume(1.0, VolumeUnit.LITRE);
+
+    Assert.IsTrue(q1.Equals(q2));
+}
+
+[TestMethod]
+public void testConversion_LitreToMillilitre()
+{
+    QuantityVolume q = new QuantityVolume(1.0, VolumeUnit.LITRE);
+
+    QuantityVolume result = q.ConvertTo(VolumeUnit.MILLILITRE);
+
+    Assert.IsTrue(result.Equals(new QuantityVolume(1000.0, VolumeUnit.MILLILITRE)));
+}
+
+[TestMethod]
+public void testConversion_GallonToLitre()
+{
+    QuantityVolume q = new QuantityVolume(1.0, VolumeUnit.GALLON);
+
+    QuantityVolume result = q.ConvertTo(VolumeUnit.LITRE);
+
+    Assert.IsTrue(result.Equals(new QuantityVolume(3.78541, VolumeUnit.LITRE)));
+}
+
+[TestMethod]
+public void testAddition_SameUnit_LitrePlusLitre()
+{
+    QuantityVolume q1 = new QuantityVolume(1.0, VolumeUnit.LITRE);
+    QuantityVolume q2 = new QuantityVolume(2.0, VolumeUnit.LITRE);
+
+    QuantityVolume result = q1.Add(q2);
+
+    Assert.IsTrue(result.Equals(new QuantityVolume(3.0, VolumeUnit.LITRE)));
+}
+
+[TestMethod]
+public void testAddition_CrossUnit_LitrePlusMillilitre()
+{
+    QuantityVolume q1 = new QuantityVolume(1.0, VolumeUnit.LITRE);
+    QuantityVolume q2 = new QuantityVolume(1000.0, VolumeUnit.MILLILITRE);
+
+    QuantityVolume result = q1.Add(q2);
+
+    Assert.IsTrue(result.Equals(new QuantityVolume(2.0, VolumeUnit.LITRE)));
+}
 
     }
