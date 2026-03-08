@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QuantityMeasurementApp.Model;
 
 namespace QuantityMeasurementApp.Tests;
- [TestClass]
+[TestClass]
 public class QuantityLengthTest
 {
     //Testing equality of two lengths in the same unit and same value should return true

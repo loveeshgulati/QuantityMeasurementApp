@@ -33,29 +33,45 @@ public class QuantityWeight
         return new QuantityWeight(converted, targetUnit);
     }
 
-    public QuantityWeight Add(QuantityWeight other)
-    {
-        if (other == null)
-            throw new ArgumentException("Other quantity cannot be null");
+    // public QuantityWeight Add(QuantityWeight other)
+    // {
+    //     if (other == null)
+    //         throw new ArgumentException("Other quantity cannot be null");
 
-        double sum = this.ConvertToBaseUnit() + other.ConvertToBaseUnit();
+    //     double sum = this.ConvertToBaseUnit() + other.ConvertToBaseUnit();
 
-        double result = unit.ConvertFromBaseUnit(sum);
+    //     double result = unit.ConvertFromBaseUnit(sum);
 
-        return new QuantityWeight(result, unit);
-    }
+    //     return new QuantityWeight(result, unit);
+    // }
+public QuantityWeight Add(QuantityWeight other)
+{
+    double resultBase = PerformBaseArithmetic(other, ArithmeticOperation.ADD);
 
-    public QuantityWeight Add(QuantityWeight other, WeightUnit targetUnit)
-    {
-        if (other == null)
-            throw new ArgumentException("Other quantity cannot be null");
+    double result = unit.ConvertFromBaseUnit(resultBase);
 
-        double sum = this.ConvertToBaseUnit() + other.ConvertToBaseUnit();
+    return new QuantityWeight(result, unit);
+}
+    // public QuantityWeight Add(QuantityWeight other, WeightUnit targetUnit)
+    // {
+    //     if (other == null)
+    //         throw new ArgumentException("Other quantity cannot be null");
 
-        double result = targetUnit.ConvertFromBaseUnit(sum);
+    //     double sum = this.ConvertToBaseUnit() + other.ConvertToBaseUnit();
 
-        return new QuantityWeight(result, targetUnit);
-    }
+    //     double result = targetUnit.ConvertFromBaseUnit(sum);
+
+    //     return new QuantityWeight(result, targetUnit);
+    // }
+
+public QuantityWeight Add(QuantityWeight other, WeightUnit targetUnit)
+{
+    double resultBase = PerformBaseArithmetic(other, ArithmeticOperation.ADD);
+
+    double result = targetUnit.ConvertFromBaseUnit(resultBase);
+
+    return new QuantityWeight(result, targetUnit);
+}
 
     public override bool Equals(object obj)
     {
@@ -72,46 +88,104 @@ public class QuantityWeight
     }
 
     // UC12 - Subtraction
+    // public QuantityWeight Subtract(QuantityWeight other)
+    // {
+    //     if (other == null)
+    //         throw new ArgumentException("Second operand cannot be null");
+
+    //     double converted = other.ConvertTo(this.unit).value;
+
+    //     return new QuantityWeight(this.value - converted, this.unit);
+    // }
     public QuantityWeight Subtract(QuantityWeight other)
-    {
-        if (other == null)
-            throw new ArgumentException("Second operand cannot be null");
+{
+    double resultBase = PerformBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
 
-        double converted = other.ConvertTo(this.unit).value;
+    double result = unit.ConvertFromBaseUnit(resultBase);
 
-        return new QuantityWeight(this.value - converted, this.unit);
-    }
+    return new QuantityWeight(result, unit);
+}
 
     // UC12 - Subtraction with target unit
+    // public QuantityWeight Subtract(QuantityWeight other, WeightUnit targetUnit)
+    // {
+    //     if (other == null)
+    //         throw new ArgumentException("Second operand cannot be null");
+
+    //     double base1 = this.ConvertToBaseUnit();
+    //     double base2 = other.ConvertToBaseUnit();
+
+    //     double resultBase = base1 - base2;
+
+    //     double result = targetUnit.ConvertFromBaseUnit(resultBase);
+
+    //     return new QuantityWeight(result, targetUnit);
+    // }
+
     public QuantityWeight Subtract(QuantityWeight other, WeightUnit targetUnit)
-    {
-        if (other == null)
-            throw new ArgumentException("Second operand cannot be null");
+{
+    double resultBase = PerformBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
 
-        double base1 = this.ConvertToBaseUnit();
-        double base2 = other.ConvertToBaseUnit();
+    double result = targetUnit.ConvertFromBaseUnit(resultBase);
 
-        double resultBase = base1 - base2;
-
-        double result = targetUnit.ConvertFromBaseUnit(resultBase);
-
-        return new QuantityWeight(result, targetUnit);
-    }
+    return new QuantityWeight(result, targetUnit);
+}
 
     // UC12 - Division
+    // public double Divide(QuantityWeight other)
+    // {
+    //     if (other == null)
+    //         throw new ArgumentException("Second operand cannot be null");
+
+    //     double base1 = this.ConvertToBaseUnit();
+    //     double base2 = other.ConvertToBaseUnit();
+
+    //     if (Math.Abs(base2) < EPSILON)
+    //         throw new ArithmeticException("Division by zero");
+
+    //     return base1 / base2;
+    // }
     public double Divide(QuantityWeight other)
+{
+    return PerformBaseArithmetic(other, ArithmeticOperation.DIVIDE);
+}
+
+    //UC13
+    private void ValidateArithmeticOperands(QuantityWeight other)
+{
+    if (other == null)
+        throw new ArgumentException("Operand cannot be null");
+
+    if (double.IsNaN(this.value) || double.IsInfinity(this.value) ||
+        double.IsNaN(other.value) || double.IsInfinity(other.value))
+        throw new ArgumentException("Invalid numeric value");
+}
+
+private double PerformBaseArithmetic(QuantityWeight other, ArithmeticOperation operation)
+{
+    ValidateArithmeticOperands(other);
+
+    double base1 = this.ConvertToBaseUnit();
+    double base2 = other.ConvertToBaseUnit();
+
+    switch (operation)
     {
-        if (other == null)
-            throw new ArgumentException("Second operand cannot be null");
+        case ArithmeticOperation.ADD:
+            return base1 + base2;
 
-        double base1 = this.ConvertToBaseUnit();
-        double base2 = other.ConvertToBaseUnit();
+        case ArithmeticOperation.SUBTRACT:
+            return base1 - base2;
 
-        if (Math.Abs(base2) < EPSILON)
-            throw new ArithmeticException("Division by zero");
+        case ArithmeticOperation.DIVIDE:
+            if (Math.Abs(base2) < EPSILON)
+                throw new ArithmeticException("Division by zero");
 
-        return base1 / base2;
+            return base1 / base2;
+
+        default:
+            throw new InvalidOperationException("Unsupported operation");
     }
+}
     public override int GetHashCode()
     {
         return ConvertToBaseUnit().GetHashCode();
