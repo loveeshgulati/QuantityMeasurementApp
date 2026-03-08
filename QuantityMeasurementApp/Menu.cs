@@ -2,7 +2,7 @@ using QuantityMeasurementApp.Interfaces;
 using QuantityMeasurementApp.Services;
 using QuantityMeasurementApp.Model;
 namespace QuantityMeasurementApp;
-     internal class Menu
+internal class Menu
     {
         public static void StartApp()
         {
