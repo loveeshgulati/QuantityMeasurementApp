@@ -93,6 +93,44 @@ namespace QuantityMeasurementApp.Model;
             return Math.Abs(this.ConvertToBaseUnit() - other.ConvertToBaseUnit()) < EPSILON;
         }
 
+
+// UC12 - Subtraction
+public QuantityLength Subtract(QuantityLength other)
+{
+    if (other == null)
+        throw new ArgumentException("Second operand cannot be null");
+
+    double resultInBase = this.ConvertToBaseUnit() - other.ConvertToBaseUnit();
+    double resultValue = this.unit.ConvertFromBaseUnit(resultInBase);
+
+    return new QuantityLength(resultValue, this.unit);
+}
+
+// UC12 - Subtraction with Target Unit
+public QuantityLength Subtract(QuantityLength other, LengthUnit targetUnit)
+{
+    if (other == null)
+        throw new ArgumentException("Second operand cannot be null");
+
+    double resultInBase = this.ConvertToBaseUnit() - other.ConvertToBaseUnit();
+    double resultValue = targetUnit.ConvertFromBaseUnit(resultInBase);
+
+    return new QuantityLength(resultValue, targetUnit);
+}
+
+// UC12 - Division
+public double Divide(QuantityLength other)
+{
+    if (other == null)
+        throw new ArgumentException("Second operand cannot be null");
+
+    double divisor = other.ConvertToBaseUnit();
+
+    if (Math.Abs(divisor) < EPSILON)
+        throw new ArithmeticException("Division by zero");
+
+    return this.ConvertToBaseUnit() / divisor;
+}
         public override int GetHashCode()
         {
             return ConvertToBaseUnit().GetHashCode();
