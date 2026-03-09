@@ -1,7 +1,7 @@
-﻿namespace QuantityMeasurementApp;
+namespace QuantityMeasurementApp;
     internal class Program
     {
-       static void Main(string[] args)
+       static void Main()
         {
             Menu.StartApp();
         }

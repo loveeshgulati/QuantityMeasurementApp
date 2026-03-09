@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "X:\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementApp.csproj",
+      "projectUniqueName": "X:\\SteamLibrary\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementApp.csproj",
       "projectName": "QuantityMeasurementApp",
-      "projectPath": "X:\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementApp.csproj",
+      "projectPath": "X:\\SteamLibrary\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementApp.csproj",
       "packagesPath": "C:\\Users\\ABCD\\.nuget\\packages\\",
-      "outputPath": "X:\\QuantityMeasurementApp\\QuantityMeasurementApp\\obj\\",
+      "outputPath": "X:\\SteamLibrary\\QuantityMeasurementApp\\QuantityMeasurementApp\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
