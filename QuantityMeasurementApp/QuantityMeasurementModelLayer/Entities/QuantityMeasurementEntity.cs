@@ -1,19 +1,20 @@
-namespace QuantityMeasurementModelLayer.Entities;
+namespace QuantityMeasurementModelLayer.Entities
+{
     public class QuantityMeasurementEntity
     {
         public int Id { get; set; }
 
         public double FirstValue { get; set; }
-        public string FirstUnit { get; set; }
+        public string FirstUnit { get; set; } = null!;
 
         public double SecondValue { get; set; }
-        public string SecondUnit { get; set; }
+        public string SecondUnit { get; set; } = null!;
 
-        public string Operation { get; set; }
+        public string Operation { get; set; } = null!;
 
         public double Result { get; set; }
 
-        public string MeasurementType { get; set; }
+        public string MeasurementType { get; set; } = null!;
 
         public QuantityMeasurementEntity() { }
 
@@ -35,3 +36,4 @@ namespace QuantityMeasurementModelLayer.Entities;
             MeasurementType = measurementType;
         }
     }
+}

@@ -1,16 +1,19 @@
 using QuantityMeasurementModelLayer.DTO;
+using QuantityMeasurementModelLayer.Entities;
+using QuantityMeasurementModelLayer.Exceptions;
+using System.Collections.Generic;
 
-namespace QuantityMeasurementBusinessLayer.Interfaces;
-
-public interface IQuantityMeasurementService
+namespace QuantityMeasurementBusinessLayer.Interfaces
 {
-    bool Compare(QuantityDTO q1, QuantityDTO q2);
+    public interface IQuantityMeasurementService
+    {
+        double CompareQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity);
+        QuantityDTO AddQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity);
+         QuantityDTO SubtractQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity);
+        QuantityDTO DivideQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity);
+        QuantityDTO ConvertQuantity(QuantityDTO quantity, string targetUnit);
 
-    QuantityDTO Convert(QuantityDTO input, string targetUnit);
-
-    QuantityDTO Add(QuantityDTO q1, QuantityDTO q2);
-
-    QuantityDTO Subtract(QuantityDTO q1, QuantityDTO q2);
-
-    double Divide(QuantityDTO q1, QuantityDTO q2);
+        List<QuantityMeasurementEntity> GetErroredOperations();
+        int GetOperationCount(string operationType);
+    }
 }

@@ -1,35 +1,11 @@
-// using QuantityMeasurementModelLayer.Entities;
-
-// namespace QuantityMeasurementRepositoryLayer.Interfaces;
-
-// public interface IQuantityMeasurementRepository
-// {
-//     void Save(QuantityMeasurementEntity entity);
-//     List<QuantityMeasurementEntity> GetAll();
-// }
-
-
 using QuantityMeasurementModelLayer.Entities;
 
-namespace QuantityMeasurementRepositoryLayer.Interfaces;
-
-public interface IQuantityMeasurementRepository
+namespace QuantityMeasurementRepositoryLayer.Interfaces
 {
-    // Save measurement
-    void Save(QuantityMeasurementEntity entity);
+    public interface IQuantityMeasurementRepository
+    {
+        void SaveOperation(QuantityMeasurementEntity entity);
 
-    // Get all measurements
-    List<QuantityMeasurementEntity> GetAll();
-
-    // Get measurements by operation (Add, Subtract, Compare etc.)
-    List<QuantityMeasurementEntity> GetByOperation(string operation);
-
-    // Get measurements by type (Length, Volume, Weight, Temperature)
-    List<QuantityMeasurementEntity> GetByMeasurementType(string measurementType);
-
-    // Total count of records
-    int GetTotalCount();
-
-    // Delete all measurements
-    void DeleteAll();
+        List<QuantityMeasurementEntity> GetAll();
+    }
 }

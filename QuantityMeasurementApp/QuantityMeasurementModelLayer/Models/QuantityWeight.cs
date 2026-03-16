@@ -4,8 +4,8 @@ namespace QuantityMeasurementApp.Model;
 
 public class QuantityWeight
 {
-    private readonly double value;
-    private readonly WeightUnit unit;
+    public readonly double value;
+    public readonly WeightUnit unit;
     private const double EPSILON = 0.00001;
 
     public QuantityWeight(double value, WeightUnit unit)

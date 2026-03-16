@@ -64,7 +64,7 @@ public QuantityVolume Subtract(QuantityVolume other)
 {
     double resultBase = PerformBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
 
-    double result = Unit.ToBaseUnit();
+    double result = resultBase / Unit.ToBaseUnit();
 
     return new QuantityVolume(result, Unit);
 }
@@ -83,15 +83,14 @@ public QuantityVolume Subtract(QuantityVolume other)
 
     //     return new QuantityVolume(result, targetUnit);
     // }
-    public QuantityVolume Subtract(QuantityVolume other, VolumeUnit targetUnit)
+ public QuantityVolume Subtract(QuantityVolume other, VolumeUnit targetUnit)
 {
     double resultBase = PerformBaseArithmetic(other, ArithmeticOperation.SUBTRACT);
 
-    double result = targetUnit.ToBaseUnit();
+    double result = resultBase / targetUnit.ToBaseUnit();
 
     return new QuantityVolume(result, targetUnit);
 }
-
     // UC12 - Division
     // public double Divide(QuantityVolume other)
     // {
