@@ -1,9 +1,5 @@
-using QuantityMeasurementModelLayer.DTO;
-
-namespace QuantityMeasurementConsoleApp.Interfaces
+namespace QuantityMeasurementConsoleApp.Interfaces;
+public interface IMenu
 {
-    public interface IMenu
-    {
-        void Start();
-    }
+    void Start();
 }
