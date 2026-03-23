@@ -11,7 +11,7 @@ using QuantityMeasurementRepositoryLayer.Context;
 namespace QuantityMeasurementRepositoryLayer.Migrations
 {
     [DbContext(typeof(QuantityMeasurementDbContext))]
-    [Migration("20260316085739_InitialCreate")]
+    [Migration("20260313085902_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

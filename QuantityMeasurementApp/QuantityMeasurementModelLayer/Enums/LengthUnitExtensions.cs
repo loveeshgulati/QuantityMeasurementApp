@@ -1,4 +1,5 @@
  using QuantityMeasurementModelLayer.Enums;
+ namespace QuantityMeasurementModelLayer.Enums;
  public static class LengthUnitExtensions
     {
         public static double GetConversionFactor(this LengthUnit unit)

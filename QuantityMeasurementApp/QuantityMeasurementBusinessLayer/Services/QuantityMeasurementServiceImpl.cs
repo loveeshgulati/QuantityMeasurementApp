@@ -1,24 +1,84 @@
 using QuantityMeasurementBusinessLayer.Interfaces;
 using QuantityMeasurementModelLayer.DTO;
 using QuantityMeasurementModelLayer.Entities;
-using QuantityMeasurementRepositoryLayer.Interfaces;
-using QuantityMeasurementApp.Model;
+using QuantityMeasurementRepositoryLayer.Repository;
 using QuantityMeasurementModelLayer.Enums;
+using QuantityMeasurementModelLayer.Models;
 using QuantityMeasurementModelLayer.Exceptions;
+using System;
 using System.Collections.Generic;
 
 namespace QuantityMeasurementBusinessLayer.Services
 {
     public class QuantityMeasurementServiceImpl : IQuantityMeasurementService
     {
-        private readonly IQuantityMeasurementRepository _repository;
+        private readonly QuantityMeasurementEFRepository _dbRepository;
+        private readonly QuantityMeasurementCacheRepository _cacheRepository;
+        private readonly QuantityService _quantityService;
 
-        public QuantityMeasurementServiceImpl(IQuantityMeasurementRepository repository)
+        public QuantityMeasurementServiceImpl(
+            QuantityMeasurementEFRepository dbRepository,
+            QuantityMeasurementCacheRepository cacheRepository)
         {
-            _repository = repository;
+            _dbRepository = dbRepository;
+            _cacheRepository = cacheRepository;
+            _quantityService = new QuantityService();
         }
 
+        private void ClearCache()
+        {
+            _cacheRepository.ClearCache();
+        }
 
+       private void SaveOperation(QuantityMeasurementEntity entity)
+{
+    try
+    {
+        _dbRepository.SaveOperation(entity);
+        ClearCache();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"DB FAILED - ADDING TO QUEUE: {ex.Message}");
+        _cacheRepository.AddToQueue(entity);
+    }
+}
+
+        // ---------------------- New Background Sync Method ----------------------
+       
+       
+public void SyncQueueToDatabase()
+{
+    var queuedEntities = _cacheRepository.GetQueue();
+
+    if (queuedEntities.Count == 0)
+    {
+        Console.WriteLine("QUEUE EMPTY");
+        return;
+    }
+
+    Console.WriteLine($"SYNC STARTED: {queuedEntities.Count}");
+
+    foreach (var entity in queuedEntities)
+    {
+        try
+        {
+            _dbRepository.SaveOperation(entity);
+            Console.WriteLine($"SYNCED ID: {entity.Id}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"DB STILL OFFLINE: {ex.Message}");
+            return; // ❗ STOP IMMEDIATELY
+        }
+    }
+
+    // ✅ ONLY REACH HERE IF ALL SUCCESS
+    _cacheRepository.ClearQueue();
+    _cacheRepository.ClearCache();
+}
+
+        // ---------------------- Existing Methods ----------------------
         public double CompareQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity)
         {
             if (thisQuantity.MeasurementType != thatQuantity.MeasurementType)
@@ -29,49 +89,29 @@ namespace QuantityMeasurementBusinessLayer.Services
             switch (thisQuantity.MeasurementType.ToUpper())
             {
                 case "LENGTH":
-
-                    LengthUnit lengthUnit1 = Enum.Parse<LengthUnit>(thisQuantity.Unit, true);
-                    LengthUnit lengthUnit2 = Enum.Parse<LengthUnit>(thatQuantity.Unit, true);
-
-                    QuantityLength lengthq1 = new QuantityLength(thisQuantity.Value, lengthUnit1);
-                    QuantityLength lengthq2 = new QuantityLength(thatQuantity.Value, lengthUnit2);
-
-                    result = lengthq1.Equals(lengthq2);
-
+                    var l1 = new QuantityModel<LengthUnit>(thisQuantity.Value, Enum.Parse<LengthUnit>(thisQuantity.Unit, true));
+                    var l2 = new QuantityModel<LengthUnit>(thatQuantity.Value, Enum.Parse<LengthUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Compare(l1, l2);
                     break;
+
                 case "VOLUME":
-
-                    VolumeUnit volumeUnit1 = Enum.Parse<VolumeUnit>(thisQuantity.Unit, true);
-                    VolumeUnit volumeUnit2 = Enum.Parse<VolumeUnit>(thatQuantity.Unit, true);
-
-                    QuantityVolume volumeq1 = new QuantityVolume(thisQuantity.Value, volumeUnit1);
-                    QuantityVolume volumeq2 = new QuantityVolume(thatQuantity.Value, volumeUnit2);
-
-                    result = volumeq1.Equals(volumeq2);
-
+                    var v1 = new QuantityModel<VolumeUnit>(thisQuantity.Value, Enum.Parse<VolumeUnit>(thisQuantity.Unit, true));
+                    var v2 = new QuantityModel<VolumeUnit>(thatQuantity.Value, Enum.Parse<VolumeUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Compare(v1, v2);
                     break;
+
                 case "WEIGHT":
-
-                    WeightUnit weightUnit1 = Enum.Parse<WeightUnit>(thisQuantity.Unit, true);
-                    WeightUnit weightUnit2 = Enum.Parse<WeightUnit>(thatQuantity.Unit, true);
-
-                    QuantityWeight weightq1 = new QuantityWeight(thisQuantity.Value, weightUnit1);
-                    QuantityWeight weightq2 = new QuantityWeight(thatQuantity.Value, weightUnit2);
-
-                    result = weightq1.Equals(weightq2);
-
+                    var w1 = new QuantityModel<WeightUnit>(thisQuantity.Value, Enum.Parse<WeightUnit>(thisQuantity.Unit, true));
+                    var w2 = new QuantityModel<WeightUnit>(thatQuantity.Value, Enum.Parse<WeightUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Compare(w1, w2);
                     break;
 
                 case "TEMPERATURE":
-
-                    TemperatureUnit t1 = Enum.Parse<TemperatureUnit>(thisQuantity.Unit, true);
-                    TemperatureUnit t2 = Enum.Parse<TemperatureUnit>(thatQuantity.Unit, true);
-
+                    var t1 = Enum.Parse<TemperatureUnit>(thisQuantity.Unit, true);
+                    var t2 = Enum.Parse<TemperatureUnit>(thatQuantity.Unit, true);
                     double base1 = t1.ConvertToBaseUnit(thisQuantity.Value);
                     double base2 = t2.ConvertToBaseUnit(thatQuantity.Value);
-
                     result = Math.Abs(base1 - base2) < 0.0001;
-
                     break;
 
                 default:
@@ -80,82 +120,49 @@ namespace QuantityMeasurementBusinessLayer.Services
 
             double compareResult = result ? 1 : 0;
 
-            _repository.SaveOperation(new QuantityMeasurementEntity(
+            // Save operation (will go to DB or queue if offline)
+            SaveOperation(new QuantityMeasurementEntity(
                 thisQuantity.Value,
                 thisQuantity.Unit,
                 thatQuantity.Value,
                 thatQuantity.Unit,
                 "COMPARE",
                 compareResult,
-                thisQuantity.MeasurementType
-            ));
+                thisQuantity.MeasurementType));
 
             return compareResult;
         }
+
         public QuantityDTO AddQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity)
         {
             if (thisQuantity.MeasurementType != thatQuantity.MeasurementType)
-            {
                 throw new Exception("Cannot perform operation on different measurement types");
-            }
 
             double result;
-            string resultUnit;
+            string resultUnit = thisQuantity.Unit;
 
             switch (thisQuantity.MeasurementType.ToUpper())
             {
                 case "LENGTH":
-
-                    LengthUnit lengthUnit1 = Enum.Parse<LengthUnit>(thisQuantity.Unit, true);
-                    LengthUnit lengthUnit2 = Enum.Parse<LengthUnit>(thatQuantity.Unit, true);
-
-                    QuantityLength lengthq1 = new QuantityLength(thisQuantity.Value, lengthUnit1);
-                    QuantityLength lengthq2 = new QuantityLength(thatQuantity.Value, lengthUnit2);
-
-                    QuantityLength lengthResult = lengthq1.Add(lengthq2);
-
-                    result = lengthResult.Value;
-                    resultUnit = lengthResult.Unit.ToString();
-
+                    var l1 = new QuantityModel<LengthUnit>(thisQuantity.Value, Enum.Parse<LengthUnit>(thisQuantity.Unit, true));
+                    var l2 = new QuantityModel<LengthUnit>(thatQuantity.Value, Enum.Parse<LengthUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Add(l1, l2).Value;
                     break;
+
                 case "VOLUME":
-
-                    VolumeUnit volumeUnit1 = Enum.Parse<VolumeUnit>(thisQuantity.Unit, true);
-                    VolumeUnit volumeUnit2 = Enum.Parse<VolumeUnit>(thatQuantity.Unit, true);
-
-                    QuantityVolume volumeq1 = new QuantityVolume(thisQuantity.Value, volumeUnit1);
-                    QuantityVolume volumeq2 = new QuantityVolume(thatQuantity.Value, volumeUnit2);
-
-                    QuantityVolume volumeResult = volumeq1.Add(volumeq2);
-
-                    result = volumeResult.Value;
-                    resultUnit = volumeResult.Unit.ToString();
-
+                    var v1 = new QuantityModel<VolumeUnit>(thisQuantity.Value, Enum.Parse<VolumeUnit>(thisQuantity.Unit, true));
+                    var v2 = new QuantityModel<VolumeUnit>(thatQuantity.Value, Enum.Parse<VolumeUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Add(v1, v2).Value;
                     break;
+
                 case "WEIGHT":
-
-                    WeightUnit weightUnit1 = Enum.Parse<WeightUnit>(thisQuantity.Unit, true);
-                    WeightUnit weightUnit2 = Enum.Parse<WeightUnit>(thatQuantity.Unit, true);
-
-                    QuantityWeight weightq1 = new QuantityWeight(thisQuantity.Value, weightUnit1);
-                    QuantityWeight weightq2 = new QuantityWeight(thatQuantity.Value, weightUnit2);
-
-                    QuantityWeight weightResult = weightq1.Add(weightq2);
-
-                    result = weightResult.value;
-                    resultUnit = weightResult.unit.ToString();
-
+                    var w1 = new QuantityModel<WeightUnit>(thisQuantity.Value, Enum.Parse<WeightUnit>(thisQuantity.Unit, true));
+                    var w2 = new QuantityModel<WeightUnit>(thatQuantity.Value, Enum.Parse<WeightUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Add(w1, w2).Value;
                     break;
+
                 case "TEMPERATURE":
-
-                    TemperatureUnit tUnit =
-                        Enum.Parse<TemperatureUnit>(thisQuantity.Unit, true);
-
-                    tUnit.ValidateOperationSupport("ADD");
-
-                    throw new UnsupportedOperationException(
-                        "Addition not supported for Temperature");
-                    break;
+                    throw new UnsupportedOperationException("Addition not supported for Temperature");
 
                 default:
                     throw new Exception("Unsupported measurement type");
@@ -168,76 +175,45 @@ namespace QuantityMeasurementBusinessLayer.Services
                 thatQuantity.Unit,
                 "ADD",
                 result,
-                thisQuantity.MeasurementType
-            );
+                thisQuantity.MeasurementType);
 
-            _repository.SaveOperation(entity);
+            SaveOperation(entity);
 
             return new QuantityDTO(result, resultUnit, thisQuantity.MeasurementType);
         }
 
-        public QuantityDTO SubtractQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity)
+
+
+ public QuantityDTO SubtractQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity)
         {
             if (thisQuantity.MeasurementType != thatQuantity.MeasurementType)
                 throw new Exception("Cannot perform operation on different measurement types");
 
             double result;
-            string resultUnit;
+            string resultUnit = thisQuantity.Unit;
 
             switch (thisQuantity.MeasurementType.ToUpper())
             {
                 case "LENGTH":
-
-                    LengthUnit lengthUnit1 = Enum.Parse<LengthUnit>(thisQuantity.Unit, true);
-                    LengthUnit lengthUnit2 = Enum.Parse<LengthUnit>(thatQuantity.Unit, true);
-
-                    QuantityLength lengthq1 = new QuantityLength(thisQuantity.Value, lengthUnit1);
-                    QuantityLength lengthq2 = new QuantityLength(thatQuantity.Value, lengthUnit2);
-
-                    QuantityLength resultQuantity = lengthq1.Subtract(lengthq2);
-
-                    result = resultQuantity.Value;
-                    resultUnit = resultQuantity.Unit.ToString();
-
+                    var l1 = new QuantityModel<LengthUnit>(thisQuantity.Value, Enum.Parse<LengthUnit>(thisQuantity.Unit, true));
+                    var l2 = new QuantityModel<LengthUnit>(thatQuantity.Value, Enum.Parse<LengthUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Subtract(l1, l2).Value;
                     break;
+
                 case "VOLUME":
-
-                    VolumeUnit volumeUnit1 = Enum.Parse<VolumeUnit>(thisQuantity.Unit, true);
-                    VolumeUnit volumeUnit2 = Enum.Parse<VolumeUnit>(thatQuantity.Unit, true);
-
-                    QuantityVolume volumeq1 = new QuantityVolume(thisQuantity.Value, volumeUnit1);
-                    QuantityVolume volumeq2 = new QuantityVolume(thatQuantity.Value, volumeUnit2);
-
-                    QuantityVolume volumeResult = volumeq1.Subtract(volumeq2);
-
-                    result = volumeResult.Value;
-                    resultUnit = volumeResult.Unit.ToString();
-
+                    var v1 = new QuantityModel<VolumeUnit>(thisQuantity.Value, Enum.Parse<VolumeUnit>(thisQuantity.Unit, true));
+                    var v2 = new QuantityModel<VolumeUnit>(thatQuantity.Value, Enum.Parse<VolumeUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Subtract(v1, v2).Value;
                     break;
+
                 case "WEIGHT":
-
-                    WeightUnit weightUnit1 = Enum.Parse<WeightUnit>(thisQuantity.Unit, true);
-                    WeightUnit weightUnit2 = Enum.Parse<WeightUnit>(thatQuantity.Unit, true);
-
-                    QuantityWeight weightq1 = new QuantityWeight(thisQuantity.Value, weightUnit1);
-                    QuantityWeight weightq2 = new QuantityWeight(thatQuantity.Value, weightUnit2);
-
-                    QuantityWeight weightResult = weightq1.Subtract(weightq2);
-
-                    result = weightResult.value;
-                    resultUnit = weightResult.unit.ToString();
-
+                    var w1 = new QuantityModel<WeightUnit>(thisQuantity.Value, Enum.Parse<WeightUnit>(thisQuantity.Unit, true));
+                    var w2 = new QuantityModel<WeightUnit>(thatQuantity.Value, Enum.Parse<WeightUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Subtract(w1, w2).Value;
                     break;
 
                 case "TEMPERATURE":
-
-                    TemperatureUnit tUnit =
-                        Enum.Parse<TemperatureUnit>(thisQuantity.Unit, true);
-
-                    tUnit.ValidateOperationSupport("SUBTRACT");
-
-                    throw new UnsupportedOperationException(
-                        "Subtraction not supported for Temperature");
+                    throw new UnsupportedOperationException("Subtraction not supported for Temperature");
 
                 default:
                     throw new Exception("Unsupported measurement type");
@@ -250,14 +226,12 @@ namespace QuantityMeasurementBusinessLayer.Services
                 thatQuantity.Unit,
                 "SUBTRACT",
                 result,
-                thisQuantity.MeasurementType
-            );
+                thisQuantity.MeasurementType);
 
-            _repository.SaveOperation(entity);
+            SaveOperation(entity);
 
             return new QuantityDTO(result, resultUnit, thisQuantity.MeasurementType);
         }
-       
 
         public QuantityDTO DivideQuantities(QuantityDTO thisQuantity, QuantityDTO thatQuantity)
         {
@@ -269,50 +243,25 @@ namespace QuantityMeasurementBusinessLayer.Services
             switch (thisQuantity.MeasurementType.ToUpper())
             {
                 case "LENGTH":
-
-                    LengthUnit lengthUnit1 = Enum.Parse<LengthUnit>(thisQuantity.Unit, true);
-                    LengthUnit lengthUnit2 = Enum.Parse<LengthUnit>(thatQuantity.Unit, true);
-
-                    QuantityLength lengthq1 = new QuantityLength(thisQuantity.Value, lengthUnit1);
-                    QuantityLength lengthq2 = new QuantityLength(thatQuantity.Value, lengthUnit2);
-
-                    result = lengthq1.Divide(lengthq2);
-
+                    var l1 = new QuantityModel<LengthUnit>(thisQuantity.Value, Enum.Parse<LengthUnit>(thisQuantity.Unit, true));
+                    var l2 = new QuantityModel<LengthUnit>(thatQuantity.Value, Enum.Parse<LengthUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Divide(l1, l2);
                     break;
+
                 case "VOLUME":
-
-                    VolumeUnit volumeUnit1 = Enum.Parse<VolumeUnit>(thisQuantity.Unit, true);
-                    VolumeUnit volumeUnit2 = Enum.Parse<VolumeUnit>(thatQuantity.Unit, true);
-
-                    QuantityVolume volumeq1 = new QuantityVolume(thisQuantity.Value, volumeUnit1);
-                    QuantityVolume volumeq2 = new QuantityVolume(thatQuantity.Value, volumeUnit2);
-
-                    result = volumeq1.Divide(volumeq2);
-
+                    var v1 = new QuantityModel<VolumeUnit>(thisQuantity.Value, Enum.Parse<VolumeUnit>(thisQuantity.Unit, true));
+                    var v2 = new QuantityModel<VolumeUnit>(thatQuantity.Value, Enum.Parse<VolumeUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Divide(v1, v2);
                     break;
+
                 case "WEIGHT":
-
-                    WeightUnit weightUnit1 = Enum.Parse<WeightUnit>(thisQuantity.Unit, true);
-                    WeightUnit weightUnit2 = Enum.Parse<WeightUnit>(thatQuantity.Unit, true);
-
-                    QuantityWeight weightq1 = new QuantityWeight(thisQuantity.Value, weightUnit1);
-                    QuantityWeight weightq2 = new QuantityWeight(thatQuantity.Value, weightUnit2);
-
-                    result = weightq1.Divide(weightq2);
-
+                    var w1 = new QuantityModel<WeightUnit>(thisQuantity.Value, Enum.Parse<WeightUnit>(thisQuantity.Unit, true));
+                    var w2 = new QuantityModel<WeightUnit>(thatQuantity.Value, Enum.Parse<WeightUnit>(thatQuantity.Unit, true));
+                    result = _quantityService.Divide(w1, w2);
                     break;
-
-
 
                 case "TEMPERATURE":
-
-                    TemperatureUnit tUnit =
-                        Enum.Parse<TemperatureUnit>(thisQuantity.Unit, true);
-
-                    tUnit.ValidateOperationSupport("DIVIDE");
-
-                    throw new UnsupportedOperationException(
-                        "Division not supported for Temperature");
+                    throw new UnsupportedOperationException("Division not supported for Temperature");
 
                 default:
                     throw new Exception("Unsupported measurement type");
@@ -325,70 +274,43 @@ namespace QuantityMeasurementBusinessLayer.Services
                 thatQuantity.Unit,
                 "DIVIDE",
                 result,
-                thisQuantity.MeasurementType
-            );
+                thisQuantity.MeasurementType);
 
-            _repository.SaveOperation(entity);
+            SaveOperation(entity);
 
             return new QuantityDTO(result, thisQuantity.Unit, thisQuantity.MeasurementType);
         }
-       
 
-        public QuantityDTO ConvertQuantity(QuantityDTO quantity, string targetUnit)
+
+
+         public QuantityDTO ConvertQuantity(QuantityDTO quantity, string targetUnit)
         {
             double result;
 
             switch (quantity.MeasurementType.ToUpper())
             {
                 case "LENGTH":
-
-                    LengthUnit lengthSource = Enum.Parse<LengthUnit>(quantity.Unit, true);
-                    LengthUnit lengthTarget = Enum.Parse<LengthUnit>(targetUnit, true);
-
-                    result = QuantityLength.Convert(quantity.Value, lengthSource, lengthTarget);
-
+                    var sourceLength = new QuantityModel<LengthUnit>(quantity.Value, Enum.Parse<LengthUnit>(quantity.Unit, true));
+                    LengthUnit targetLength = Enum.Parse<LengthUnit>(targetUnit, true);
+                    result = targetLength.ConvertFromBaseUnit(sourceLength.Unit.ConvertToBaseUnit(sourceLength.Value));
                     break;
+
                 case "VOLUME":
-
-                    VolumeUnit sourceVolume = Enum.Parse<VolumeUnit>(quantity.Unit, true);
+                    var sourceVolume = new QuantityModel<VolumeUnit>(quantity.Value, Enum.Parse<VolumeUnit>(quantity.Unit, true));
                     VolumeUnit targetVolume = Enum.Parse<VolumeUnit>(targetUnit, true);
-
-                    QuantityVolume qVolume =
-                        new QuantityVolume(quantity.Value, sourceVolume);
-
-                    QuantityVolume convertedVolume =
-                        qVolume.ConvertTo(targetVolume);
-
-                    result = convertedVolume.Value;
-
+                    result = targetVolume.ConvertFromBaseUnit(sourceVolume.Unit.ConvertToBaseUnit(sourceVolume.Value));
                     break;
+
                 case "WEIGHT":
-
-                    WeightUnit sourceWeight = Enum.Parse<WeightUnit>(quantity.Unit, true);
+                    var sourceWeight = new QuantityModel<WeightUnit>(quantity.Value, Enum.Parse<WeightUnit>(quantity.Unit, true));
                     WeightUnit targetWeight = Enum.Parse<WeightUnit>(targetUnit, true);
-
-                    QuantityWeight qWeight =
-                        new QuantityWeight(quantity.Value, sourceWeight);
-
-                    QuantityWeight convertedWeight =
-                        qWeight.ConvertTo(targetWeight);
-
-                    result = convertedWeight.value;
-
+                    result = targetWeight.ConvertFromBaseUnit(sourceWeight.Unit.ConvertToBaseUnit(sourceWeight.Value));
                     break;
 
                 case "TEMPERATURE":
-
-                    TemperatureUnit tempSource =
-                        Enum.Parse<TemperatureUnit>(quantity.Unit, true);
-
-                    TemperatureUnit tempTarget =
-                        Enum.Parse<TemperatureUnit>(targetUnit, true);
-
-                    double baseValue = tempSource.ConvertToBaseUnit(quantity.Value);
-
-                    result = tempTarget.ConvertFromBaseUnit(baseValue);
-
+                    TemperatureUnit sourceTemp = Enum.Parse<TemperatureUnit>(quantity.Unit, true);
+                    TemperatureUnit targetTemp = Enum.Parse<TemperatureUnit>(targetUnit, true);
+                    result = targetTemp.ConvertFromBaseUnit(sourceTemp.ConvertToBaseUnit(quantity.Value));
                     break;
 
                 default:
@@ -405,18 +327,34 @@ namespace QuantityMeasurementBusinessLayer.Services
                 quantity.MeasurementType
             );
 
-            _repository.SaveOperation(entity);
+            SaveOperation(entity);
 
             return new QuantityDTO(result, targetUnit, quantity.MeasurementType);
         }
+
+
+        // ---------------------- Cache-aware reads ----------------------
         public List<QuantityMeasurementEntity> GetErroredOperations()
         {
-            return _repository.GetAll().FindAll(e => e.Operation.Contains("ERROR"));
+            var allData = _cacheRepository.GetCachedData() ?? _dbRepository.GetAll();
+            return allData.FindAll(e => e.Operation.Contains("ERROR"));
         }
 
         public int GetOperationCount(string operationType)
         {
-            return _repository.GetAll().FindAll(e => e.Operation == operationType).Count;
+            var allData = _cacheRepository.GetCachedData() ?? _dbRepository.GetAll();
+            return allData.FindAll(e => e.Operation == operationType).Count;
+        }
+
+        public (List<QuantityMeasurementEntity> data, string source) GetAllOperationsWithSource()
+        {
+            var cachedData = _cacheRepository.GetCachedData();
+            if (cachedData != null)
+                return (cachedData, "REDIS CACHE");
+
+            var data = _dbRepository.GetAll();
+            _cacheRepository.SetCache(data);
+            return (data, "DATABASE");
         }
     }
 }

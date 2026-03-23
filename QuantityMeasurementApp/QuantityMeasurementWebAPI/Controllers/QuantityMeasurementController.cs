@@ -47,7 +47,6 @@ namespace QuantityMeasurementWebAPI.Controllers
         }
 
         // Subtract two quantities
-
         [HttpPost("subtract")]
         public IActionResult Subtract([FromBody] OperationRequestDTO request)
         {
@@ -61,9 +60,8 @@ namespace QuantityMeasurementWebAPI.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
-        
-        // Divide two quantities
 
+        // Divide two quantities
         [HttpPost("divide")]
         public IActionResult Divide([FromBody] OperationRequestDTO request)
         {
@@ -83,7 +81,6 @@ namespace QuantityMeasurementWebAPI.Controllers
         }
 
         // Convert a quantity to target unit
-
         [HttpPost("convert")]
         public IActionResult Convert([FromBody] ConvertRequestDTO request)
         {
@@ -98,9 +95,21 @@ namespace QuantityMeasurementWebAPI.Controllers
             }
         }
 
+        // Get all operations with data source info
+       
+        [HttpGet("history/all")]
+        public IActionResult GetAllOperations()
+        {
+            var dataWithSource = _service.GetAllOperationsWithSource(); // Returns (List<QuantityMeasurementEntity>, string source)
+            
+            return Ok(new 
+            { 
+                Source = dataWithSource.source, 
+                Data = dataWithSource.data 
+            });
+        }
 
         // Get all errored operations
-
         [HttpGet("history/errored")]
         public IActionResult GetErroredHistory()
         {
@@ -108,9 +117,7 @@ namespace QuantityMeasurementWebAPI.Controllers
             return Ok(result);
         }
 
-
         // Get total count of operations by type
-
         [HttpGet("count/{operationType}")]
         public IActionResult GetOperationCount(string operationType)
         {

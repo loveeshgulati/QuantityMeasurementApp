@@ -1,23 +1,43 @@
 using System;
-using QuantityMeasurementModelLayer.Enums;
 
-public static class VolumeUnitExtensions
+namespace QuantityMeasurementModelLayer.Enums
 {
-    public static double ToBaseUnit(this VolumeUnit unit)
+    public static class VolumeUnitExtensions
     {
-        switch (unit)
+        public static double ConvertToBaseUnit(this VolumeUnit unit, double value)
         {
-            case VolumeUnit.LITRE:
-                return 1.0;
+            switch (unit)
+            {
+                case VolumeUnit.LITRE:
+                    return value;
 
-            case VolumeUnit.MILLILITRE:
-                return 0.001;
+                case VolumeUnit.MILLILITRE:
+                    return value * 0.001;
 
-            case VolumeUnit.GALLON:
-                return 3.78541;
+                case VolumeUnit.GALLON:
+                    return value * 3.78541;
 
-            default:
-                throw new ArgumentException("Invalid Volume Unit");
+                default:
+                    throw new ArgumentException("Invalid Volume Unit");
+            }
+        }
+
+        public static double ConvertFromBaseUnit(this VolumeUnit unit, double value)
+        {
+            switch (unit)
+            {
+                case VolumeUnit.LITRE:
+                    return value;
+
+                case VolumeUnit.MILLILITRE:
+                    return value / 0.001;
+
+                case VolumeUnit.GALLON:
+                    return value / 3.78541;
+
+                default:
+                    throw new ArgumentException("Invalid Volume Unit");
+            }
         }
     }
 }

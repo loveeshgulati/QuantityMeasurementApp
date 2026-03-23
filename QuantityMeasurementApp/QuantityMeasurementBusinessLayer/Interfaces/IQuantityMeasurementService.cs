@@ -15,5 +15,7 @@ namespace QuantityMeasurementBusinessLayer.Interfaces
 
         List<QuantityMeasurementEntity> GetErroredOperations();
         int GetOperationCount(string operationType);
+        void SyncQueueToDatabase();
+        (List<QuantityMeasurementEntity> data, string source) GetAllOperationsWithSource();
     }
 }

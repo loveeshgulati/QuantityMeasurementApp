@@ -4,7 +4,6 @@ namespace QuantityMeasurementWebAPI.Middleware;
 public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
-
     public GlobalExceptionMiddleware(RequestDelegate next)
     {
         _next = next;

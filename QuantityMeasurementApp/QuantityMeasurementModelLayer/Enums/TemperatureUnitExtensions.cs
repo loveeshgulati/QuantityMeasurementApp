@@ -1,5 +1,6 @@
 using QuantityMeasurementModelLayer.Enums;
 using QuantityMeasurementModelLayer.Exceptions;
+namespace QuantityMeasurementModelLayer.Enums;
  public static class TemperatureUnitExtensions
     {
         public static double ConvertToBaseUnit(this TemperatureUnit unit, double value)

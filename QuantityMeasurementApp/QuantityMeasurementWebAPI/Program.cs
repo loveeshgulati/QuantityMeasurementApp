@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using QuantityMeasurementBusinessLayer.Interfaces;
 using QuantityMeasurementBusinessLayer.Services;
-using QuantityMeasurementRepositoryLayer.Interfaces;
 using QuantityMeasurementRepositoryLayer.Repository;
 using QuantityMeasurementRepositoryLayer.Context;
 using QuantityMeasurementWebAPI.Middleware;
+using QuantityMeasurementWebAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,16 +15,29 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure DbContext (ORM)
+// Configure DbContext (EF Core)
 builder.Services.AddDbContext<QuantityMeasurementDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    ));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
+// Configure Redis caching
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = "localhost:6379"; // Ensure Redis server is running
+    options.InstanceName = "QuantityMeasurement_";
+});
+
 
 // Dependency Injection
-builder.Services.AddScoped<IQuantityMeasurementService, QuantityMeasurementServiceImpl>();
-builder.Services.AddScoped<IQuantityMeasurementRepository, QuantityMeasurementEFRepository>();
 
+
+// 1️ Repositories
+builder.Services.AddScoped<QuantityMeasurementEFRepository>();
+builder.Services.AddScoped<QuantityMeasurementCacheRepository>();
+
+// 2️ Service
+builder.Services.AddScoped<IQuantityMeasurementService, QuantityMeasurementServiceImpl>();
+builder.Services.AddHostedService<RedisSyncBackgroundService>();
 var app = builder.Build();
 
 // Swagger middleware
@@ -38,9 +51,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
