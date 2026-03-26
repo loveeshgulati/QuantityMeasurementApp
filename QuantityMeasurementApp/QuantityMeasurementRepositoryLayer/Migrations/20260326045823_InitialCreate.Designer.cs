@@ -11,7 +11,7 @@ using QuantityMeasurementRepositoryLayer.Context;
 namespace QuantityMeasurementRepositoryLayer.Migrations
 {
     [DbContext(typeof(QuantityMeasurementDbContext))]
-    [Migration("20260313085902_InitialCreate")]
+    [Migration("20260326045823_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -60,6 +60,34 @@ namespace QuantityMeasurementRepositoryLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("QuantityMeasurements");
+                });
+
+            modelBuilder.Entity("QuantityMeasurementModelLayer.Entities.UserEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
                 });
 #pragma warning restore 612, 618
         }

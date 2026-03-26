@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuantityMeasurementBusinessLayer.Interfaces;
 using QuantityMeasurementModelLayer.DTO;
@@ -5,6 +6,7 @@ using QuantityMeasurementModelLayer.Exceptions;
 
 namespace QuantityMeasurementWebAPI.Controllers
 {
+    [Authorize(Roles ="admin,user")]
     [ApiController]
     [Route("api/v1/quantities")]
     public class QuantityMeasurementController : ControllerBase
@@ -17,6 +19,7 @@ namespace QuantityMeasurementWebAPI.Controllers
         }
 
         // Compare two quantities
+       
         [HttpPost("compare")]
         public IActionResult Compare([FromBody] CompareRequestDTO request)
         {
