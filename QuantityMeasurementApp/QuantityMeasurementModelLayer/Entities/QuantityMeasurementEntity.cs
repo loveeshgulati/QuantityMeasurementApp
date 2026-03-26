@@ -1,7 +1,12 @@
+
+using System.ComponentModel.DataAnnotations;
+
 namespace QuantityMeasurementModelLayer.Entities
 {
     public class QuantityMeasurementEntity
     {
+        [Required]
+        [Key]
         public int Id { get; set; }
 
         public double FirstValue { get; set; }
