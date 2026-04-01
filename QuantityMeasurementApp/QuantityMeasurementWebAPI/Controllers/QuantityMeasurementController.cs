@@ -6,7 +6,7 @@ using QuantityMeasurementModelLayer.Exceptions;
 
 namespace QuantityMeasurementWebAPI.Controllers
 {
-    [Authorize(Roles ="admin,user")]
+    
     [ApiController]
     [Route("api/v1/quantities")]
     public class QuantityMeasurementController : ControllerBase
@@ -99,7 +99,7 @@ namespace QuantityMeasurementWebAPI.Controllers
         }
 
         // Get all operations with data source info
-       
+        [Authorize(Roles ="admin,user")]
         [HttpGet("history/all")]
         public IActionResult GetAllOperations()
         {
