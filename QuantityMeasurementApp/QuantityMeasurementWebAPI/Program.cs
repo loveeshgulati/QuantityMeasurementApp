@@ -84,11 +84,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ---------------------- Database ----------------------
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? Environment.GetEnvironmentVariable("DATABASE_URL");
 
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Database connection string is not configured.");
+    throw new InvalidOperationException("Database connection string is not configured. Set ConnectionStrings__DefaultConnection or DATABASE_URL environment variable.");
 }
 
 // Use PostgreSQL for Render deployment
