@@ -23,8 +23,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 # Create non-root user for security
-RUN groupadd --system --gid 1000 appgroup && \
-    useradd --system --uid 1000 --gid 1000 appuser
+RUN groupadd --system --gid 1001 appgroup && \
+    useradd --system --uid 1001 --gid 1001 appuser
 
 # Copy published files
 COPY --from=build /app/publish .
