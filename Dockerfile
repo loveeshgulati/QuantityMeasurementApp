@@ -16,7 +16,7 @@ RUN dotnet restore QuantityMeasurementApp/QuantityMeasurementWebAPI/QuantityMeas
 COPY QuantityMeasurementApp/ .
 
 # Build and publish
-RUN dotnet publish QuantityMeasurementApp/QuantityMeasurementWebAPI/QuantityMeasurementWebAPI.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish QuantityMeasurementApp/QuantityMeasurementApp.sln -c Release -o /app/publish --no-restore
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
