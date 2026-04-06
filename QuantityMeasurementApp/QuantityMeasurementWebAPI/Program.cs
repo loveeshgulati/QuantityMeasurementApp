@@ -105,7 +105,8 @@ builder.Services.AddScoped<QuantityMeasurementCacheRepository>();
 // Services
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IQuantityMeasurementService, QuantityMeasurementServiceImpl>();
-builder.Services.AddHostedService<RedisSyncBackgroundService>();
+// Comment out Redis background service for now
+// builder.Services.AddHostedService<RedisSyncBackgroundService>();
 
 // Redis cache
 builder.Services.AddStackExchangeRedisCache(options =>
