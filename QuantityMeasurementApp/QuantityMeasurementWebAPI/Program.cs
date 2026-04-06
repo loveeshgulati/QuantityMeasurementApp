@@ -91,23 +91,9 @@ if (string.IsNullOrEmpty(connectionString))
     throw new InvalidOperationException("Database connection string is not configured.");
 }
 
-// Detect database type from connection string and use appropriate provider
-if (connectionString.Contains("Server=") || connectionString.Contains("Data Source="))
-{
-    // SQL Server
-    builder.Services.AddDbContext<QuantityMeasurementDbContext>(options =>
-        options.UseSqlServer(connectionString));
-}
-else if (connectionString.Contains("Host=") || connectionString.Contains("Port="))
-{
-    // PostgreSQL
-    builder.Services.AddDbContext<QuantityMeasurementDbContext>(options =>
-        options.UseNpgsql(connectionString));
-}
-else
-{
-    throw new InvalidOperationException("Unsupported database connection string format. Expected SQL Server or PostgreSQL.");
-}
+// Use PostgreSQL for Render deployment
+builder.Services.AddDbContext<QuantityMeasurementDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // ---------------------- Dependency Injection ----------------------
 // Repositories
