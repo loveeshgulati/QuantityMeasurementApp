@@ -130,6 +130,10 @@ builder.Services.AddStackExchangeRedisCache(options =>
 // ---------------------- Build App ----------------------
 var app = builder.Build();
 
+// Configure URLs for Render
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://*:{port}");
+
 // Middleware
 if (app.Environment.IsDevelopment())
 {
