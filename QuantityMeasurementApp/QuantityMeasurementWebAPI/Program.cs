@@ -118,6 +118,19 @@ builder.Services.AddStackExchangeRedisCache(options =>
 // ---------------------- Build App ----------------------
 var app = builder.Build();
 
+// Initialize database
+try
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<QuantityMeasurementDbContext>();
+    dbContext.Database.EnsureCreated();
+    Console.WriteLine("Database initialized successfully.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Database initialization failed: {ex.Message}");
+}
+
 // Configure URLs for Render
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Urls.Add($"http://*:{port}");
