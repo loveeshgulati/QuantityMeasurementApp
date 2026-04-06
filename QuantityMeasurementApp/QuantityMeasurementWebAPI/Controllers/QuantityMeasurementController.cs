@@ -99,7 +99,7 @@ namespace QuantityMeasurementWebAPI.Controllers
         }
 
         // Get all operations with data source info
-        [Authorize(Roles ="admin,user")]
+        [Authorize]
         [HttpGet("history/all")]
         public IActionResult GetAllOperations()
         {
