@@ -11,6 +11,7 @@ using QuantityMeasurementRepositoryLayer.Repository;
 using QuantityMeasurementWebAPI.Middleware;
 using QuantityMeasurementWebAPI.Services;
 using System.Security.Claims;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,9 +84,30 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // ---------------------- Database ----------------------
-builder.Services.AddDbContext<QuantityMeasurementDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("Database connection string is not configured.");
+}
+
+// Detect database type from connection string and use appropriate provider
+if (connectionString.Contains("Server=") || connectionString.Contains("Data Source="))
+{
+    // SQL Server
+    builder.Services.AddDbContext<QuantityMeasurementDbContext>(options =>
+        options.UseSqlServer(connectionString));
+}
+else if (connectionString.Contains("Host=") || connectionString.Contains("Port="))
+{
+    // PostgreSQL
+    builder.Services.AddDbContext<QuantityMeasurementDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+else
+{
+    throw new InvalidOperationException("Unsupported database connection string format. Expected SQL Server or PostgreSQL.");
+}
 
 // ---------------------- Dependency Injection ----------------------
 // Repositories
@@ -101,8 +123,8 @@ builder.Services.AddHostedService<RedisSyncBackgroundService>();
 // Redis cache
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = "localhost:6379";
-    options.InstanceName = "QuantityMeasurement_";
+    options.Configuration = builder.Configuration["Redis:ConnectionString"];
+    options.InstanceName = builder.Configuration["Redis:InstanceName"] ?? "QuantityMeasurement_";
 });
 
 // ---------------------- Build App ----------------------
