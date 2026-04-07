@@ -109,11 +109,11 @@ builder.Services.AddScoped<IQuantityMeasurementService, QuantityMeasurementServi
 // builder.Services.AddHostedService<RedisSyncBackgroundService>();
 
 // Redis cache
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration["Redis:ConnectionString"];
-    options.InstanceName = builder.Configuration["Redis:InstanceName"] ?? "QuantityMeasurement_";
-});
+// builder.Services.AddStackExchangeRedisCache(options =>
+// {
+//     options.Configuration = builder.Configuration["Redis:ConnectionString"];
+//     options.InstanceName = builder.Configuration["Redis:InstanceName"] ?? "QuantityMeasurement_";
+// });
 
 // ---------------------- Build App ----------------------
 var app = builder.Build();
