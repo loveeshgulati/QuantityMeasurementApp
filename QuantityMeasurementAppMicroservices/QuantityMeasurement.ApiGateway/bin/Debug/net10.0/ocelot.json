@@ -1,0 +1,68 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/Auth/login",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5001 }
+      ],
+      "UpstreamPathTemplate": "/auth/login",
+      "UpstreamHttpMethod": ["POST" ]
+    },
+     {
+      "DownstreamPathTemplate": "/api/Auth/signup",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5001 }
+      ],
+      "UpstreamPathTemplate": "/auth/signup",
+      "UpstreamHttpMethod": ["POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/quantities/add",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/quantity/add",
+      "UpstreamHttpMethod": ["POST" ]
+    },
+     {
+      "DownstreamPathTemplate": "/api/v1/quantities/compare",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/quantity/compare",
+      "UpstreamHttpMethod": ["POST" ]
+    },
+     {
+      "DownstreamPathTemplate": "/api/v1/quantities/convert",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/quantity/convert",
+      "UpstreamHttpMethod": ["POST" ]
+    },
+     {
+      "DownstreamPathTemplate": "/api/v1/quantities/subtract",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/quantity/subtract",
+      "UpstreamHttpMethod": ["POST" ]
+    },
+     {
+      "DownstreamPathTemplate": "/api/v1/quantities/divide",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/quantity/divide",
+      "UpstreamHttpMethod": ["POST" ]
+    },
+     {
+      "DownstreamPathTemplate": "/api/v1/history/all",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5002 }
+      ],
+      "UpstreamPathTemplate": "/quantity/history",
+      "UpstreamHttpMethod": ["GET" ]
+    }
+  ]
+}
